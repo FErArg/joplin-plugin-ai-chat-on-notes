@@ -1,16 +1,16 @@
-# AI Note Assistant — Joplin Plugin
+# AI Note Assistant: Joplin Plugin
 
-An AI-powered chat panel for Joplin that lets you have a conversation with your notes. Ask questions, get summaries, brainstorm ideas, and dig into your knowledge base — all without leaving the editor.
+An AI-powered chat panel for Joplin that lets you have a conversation with your notes. Ask questions, get summaries, brainstorm ideas, and dig into your knowledge base, all without leaving the editor.
 
 ---
 
 ## Features
 
 - **Chat with your notes:** Ask anything and the assistant answers using the content of your Joplin notes as context.
-- **Attach specific notes:** Click the 📎 button or type `@` in the message box to pick and attach individual notes to a prompt — so the AI focuses only on what you choose.
+- **Attach specific notes:** Click the 📎 button or type `@` in the message box to pick and attach individual notes to a prompt, so the AI focuses only on what you choose.
 - **@ mention autocomplete:** Type `@` followed by any part of a note title to get an instant searchable dropdown. Select a note to pin it to the message.
 - **Conversation memory:** The assistant remembers the full back-and-forth within a session, so you can ask follow-up questions naturally.
-- **Secure API key storage:** Your Cohere API key is encrypted with **AES-256-GCM** (random 96-bit IV per save) before being stored — it is never kept in plain text.
+- **Secure API key storage:** Your Cohere API key is encrypted with **AES-256-GCM** (random 96-bit IV per save) before being stored, it is never kept in plain text.
 - **Theme aware:** Automatically adapts to your Joplin theme (Light, Dark, Dracula, etc.) using native CSS variables.
 - **Keyboard friendly:** Press `Enter` to send, `Shift+Enter` for a new line, and navigate the note picker entirely with the keyboard.
 
@@ -42,7 +42,7 @@ This plugin requires a free **Cohere API key** to work.
 2. Create a new API key and copy it.
 3. In Joplin, open the **AI Note Assistant** panel and switch to the **⚙️ Settings** tab.
 4. Paste your key into the **API Key** field and click **Save & Encrypt**.
-5. The status row will confirm **✅ API key is configured.**
+5. The status row will confirm **API key is configured.**
 
 ---
 
