@@ -682,3 +682,63 @@ hr {
 .dialog-box h3 {
     color: var(--joplin-color, #333);
 }
+
+/* ── Panel hidden overlay ─────────────────────────────────────────────── */
+.panel-hidden-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--joplin-background-color, #fff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    cursor: pointer;
+}
+
+.panel-hidden-content {
+    text-align: center;
+    user-select: none;
+}
+
+.panel-hidden-icon {
+    font-size: 40px;
+    margin-bottom: 8px;
+}
+
+.panel-hidden-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--joplin-color, #333);
+    margin-bottom: 4px;
+}
+
+.panel-hidden-hint {
+    font-size: 12px;
+    color: var(--joplin-color2, #888);
+}
+
+/* ── Close button in tab bar ─────────────────────────────────────── */
+.tab-bar {
+    display: flex;
+    align-items: center;
+}
+
+.tab-close-btn {
+    margin-left: auto;
+    border: none;
+    background: transparent;
+    color: var(--joplin-color2, #888);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0 10px;
+    line-height: 32px;
+    flex-shrink: 0;
+}
+
+.tab-close-btn:hover {
+    color: var(--joplin-color, #333);
+}
+
+.tab-bar.panel-hidden {
+    display: none;
+}

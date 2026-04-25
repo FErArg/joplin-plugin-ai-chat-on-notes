@@ -55,12 +55,33 @@
     const notePickerList = document.getElementById('note-picker-list');
     const notePickerEmpty = document.getElementById('note-picker-empty');
     const chatFooter = document.querySelector('.chat-footer');
+    const panelCloseBtn = document.getElementById('panel-close-btn');
+    const panelHiddenOverlay = document.getElementById('panel-hidden-overlay');
+    const tabBar = document.querySelector('.tab-bar');
 
-    // ── Dynamic footer height → keep messages from going under the footer ────
+    // ── Panel hide/show ──────────────────────────────────────────────────────
     var resizeObserver = new ResizeObserver(function () {
         chatMessages.style.bottom = chatFooter.offsetHeight + 'px';
     });
     resizeObserver.observe(chatFooter);
+
+    // ── Panel hide/show ──────────────────────────────────────────────────────
+    panelCloseBtn.addEventListener('click', function () {
+        tabContents.forEach(function (c) { c.style.display = 'none'; });
+        tabBar.classList.add('panel-hidden');
+        panelHiddenOverlay.style.display = 'flex';
+    });
+
+    panelHiddenOverlay.addEventListener('click', function () {
+        panelHiddenOverlay.style.display = 'none';
+        tabContents.forEach(function (c) { c.style.display = ''; });
+        tabBar.classList.remove('panel-hidden');
+        var activeTab = document.querySelector('.tab-btn.active');
+        if (activeTab) {
+            var target = activeTab.getAttribute('data-tab');
+            document.getElementById('tab-' + target).classList.add('active');
+        }
+    });
 
     // ── Tab switching ────────────────────────────────────────────────────────
     tabBtns.forEach(function (btn) {

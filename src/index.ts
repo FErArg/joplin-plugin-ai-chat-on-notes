@@ -672,6 +672,15 @@ function getPanelHtml(): string {
   <link rel="stylesheet" href="webview.css"/>
 </head>
 <body>
+  <!-- Panel hidden overlay -->
+  <div id="panel-hidden-overlay" class="panel-hidden-overlay" style="display:none">
+    <div class="panel-hidden-content">
+      <div class="panel-hidden-icon">🤖</div>
+      <div class="panel-hidden-label">AI Assistant</div>
+      <div class="panel-hidden-hint">Click to show</div>
+    </div>
+  </div>
+
   <!-- Tab navigation -->
   <div class="tab-bar">
     <button class="tab-btn active" data-tab="chat" id="tab-chat-btn">
@@ -680,6 +689,7 @@ function getPanelHtml(): string {
     <button class="tab-btn" data-tab="settings" id="tab-settings-btn">
       <span class="tab-icon">⚙️</span> Settings
     </button>
+    <button class="tab-btn tab-close-btn" id="panel-close-btn" title="Hide panel">✕</button>
   </div>
 
   <!-- ── Chat Tab ── -->
