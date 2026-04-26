@@ -9,11 +9,15 @@
     let currentProvider = 'cohere';
     let hasCohereApiKey = false;
     let hasGeminiApiKey = false;
+    let hasOACompatApiKey = false;
     let apiKeySet = false;
     let allNotes = [];          // { id, title } – populated on init
     let attachedNotes = [];     // { id, title } – currently attached to the next message
     let pickerMode = null;      // 'attach' | 'mention'
     let atMentionStart = -1;    // textarea offset where the triggering @ sits
+    let currentOACompatProvider = 'deepseek';
+    let currentOABaseUrl = '';
+    let currentOAModel = '';
 
     // ── Element refs ─────────────────────────────────────────────────────────
     const chatMessages = document.getElementById('chat-messages');
@@ -27,8 +31,23 @@
     const saveSettingsBtn = document.getElementById('save-settings-btn');
     const settingsStatus = document.getElementById('settings-status');
     const toggleVisBtn = document.getElementById('toggle-visibility-btn');
+    const oaiCompatProviderSelect = document.getElementById('oai-compat-provider-select');
+    const oaiBaseUrlInput = document.getElementById('oai-base-url-input');
+    const oaiModelInput = document.getElementById('oai-model-input');
+    const oaiCompatProviderGroup = document.getElementById('oai-compat-provider-group');
+    const oaiBaseUrlGroup = document.getElementById('oai-base-url-group');
+    const oaiModelGroup = document.getElementById('oai-model-group');
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
+    const actionCreateNote = document.getElementById('action-create-note');
+    const actionGetSelected = document.getElementById('action-get-selected');
+    const actionListNotebooks = document.getElementById('action-list-notebooks');
+    const actionSaveChat = document.getElementById('action-save-chat');
+    const saveChatOverlay = document.getElementById('save-chat-overlay');
+    const saveChatTitle = document.getElementById('save-chat-title');
+    const saveChatNotebook = document.getElementById('save-chat-notebook');
+    const saveChatCancel = document.getElementById('save-chat-cancel');
+    const saveChatConfirm = document.getElementById('save-chat-confirm');
     const attachBtn = document.getElementById('attach-btn');
     const attachedNotesEl = document.getElementById('attached-notes');
     const notePickerEl = document.getElementById('note-picker');
@@ -36,12 +55,33 @@
     const notePickerList = document.getElementById('note-picker-list');
     const notePickerEmpty = document.getElementById('note-picker-empty');
     const chatFooter = document.querySelector('.chat-footer');
+    const panelCloseBtn = document.getElementById('panel-close-btn');
+    const panelHiddenOverlay = document.getElementById('panel-hidden-overlay');
+    const tabBar = document.querySelector('.tab-bar');
 
-    // ── Dynamic footer height → keep messages from going under the footer ────
+    // ── Panel hide/show ──────────────────────────────────────────────────────
     var resizeObserver = new ResizeObserver(function () {
         chatMessages.style.bottom = chatFooter.offsetHeight + 'px';
     });
     resizeObserver.observe(chatFooter);
+
+    // ── Panel hide/show ──────────────────────────────────────────────────────
+    panelCloseBtn.addEventListener('click', function () {
+        tabContents.forEach(function (c) { c.style.display = 'none'; });
+        tabBar.classList.add('panel-hidden');
+        panelHiddenOverlay.style.display = 'flex';
+    });
+
+    panelHiddenOverlay.addEventListener('click', function () {
+        panelHiddenOverlay.style.display = 'none';
+        tabContents.forEach(function (c) { c.style.display = ''; });
+        tabBar.classList.remove('panel-hidden');
+        var activeTab = document.querySelector('.tab-btn.active');
+        if (activeTab) {
+            var target = activeTab.getAttribute('data-tab');
+            document.getElementById('tab-' + target).classList.add('active');
+        }
+    });
 
     // ── Tab switching ────────────────────────────────────────────────────────
     tabBtns.forEach(function (btn) {
@@ -141,11 +181,21 @@
     }
 
     function getProviderLabel(provider) {
-        return provider === 'gemini' ? 'Gemini' : 'Cohere';
+        if (provider === 'gemini') return 'Gemini';
+        if (provider === 'openai_compat') {
+            const presetMap = {
+                deepseek: 'DeepSeek', kimi: 'Kimi', grok: 'Grok',
+                openrouter: 'OpenRouter', custom: 'Custom',
+            };
+            return presetMap[currentOACompatProvider] || 'OpenAI-Compat';
+        }
+        return 'Cohere';
     }
 
     function refreshSelectedProviderState() {
-        apiKeySet = currentProvider === 'gemini' ? hasGeminiApiKey : hasCohereApiKey;
+        if (currentProvider === 'gemini') apiKeySet = hasGeminiApiKey;
+        else if (currentProvider === 'openai_compat') apiKeySet = hasOACompatApiKey;
+        else apiKeySet = hasCohereApiKey;
     }
 
     function updateProviderUi() {
@@ -153,7 +203,24 @@
         providerSelect.value = currentProvider;
         providerStatusLabel.textContent = label + ' API Status:';
         apiKeyInputLabel.textContent = label + ' API Key';
-        apiKeyInput.placeholder = currentProvider === 'gemini' ? 'AIza...' : 'co-...';
+
+        const isOpenAICompat = currentProvider === 'openai_compat';
+        oaiCompatProviderGroup.style.display = isOpenAICompat ? 'block' : 'none';
+
+        const isCustom = currentOACompatProvider === 'custom';
+        oaiBaseUrlGroup.style.display = isOpenAICompat && isCustom ? 'block' : 'none';
+        oaiModelGroup.style.display = isOpenAICompat && isCustom ? 'block' : 'none';
+
+        if (isOpenAICompat) {
+            oaiCompatProviderSelect.value = currentOACompatProvider;
+            oaiBaseUrlInput.value = currentOABaseUrl;
+            oaiModelInput.value = currentOAModel;
+        }
+
+        if (currentProvider === 'gemini') apiKeyInput.placeholder = 'AIza...';
+        else if (currentProvider === 'openai_compat') apiKeyInput.placeholder = 'sk-...';
+        else apiKeyInput.placeholder = 'co-...';
+
         refreshSelectedProviderState();
         setStatus(
             settingsStatus,
@@ -164,6 +231,153 @@
             true
         );
     }
+
+    // ── Quick action buttons ──────────────────────────────────────────────────
+    async function executeTool(toolName, args) {
+        setBusy(true);
+        try {
+            const response = await webviewApi.postMessage({
+                type: 'execute-tool',
+                toolName,
+                args,
+            });
+            setBusy(false);
+            if (response && response.ok) {
+                return response.result;
+            } else {
+                appendErrorBubble('❌ Tool error: ' + (response?.error || 'Unknown error'));
+                return null;
+            }
+        } catch (e) {
+            setBusy(false);
+            appendErrorBubble('❌ Tool error: ' + (e.message || String(e)));
+            return null;
+        }
+    }
+
+    function renderToolResult(toolName, result) {
+        let text = '';
+        if (toolName === 'get_selected_note' && result && !result.error) {
+            text = `📄 **${result.title}**\n\n${result.body}`;
+        } else if (toolName === 'list_notebooks' && result && result.notebooks) {
+            text = '📁 **Notebooks:**\n' + result.notebooks.map((n) => `- ${n.title}`).join('\n');
+        } else if (toolName === 'create_note' && result && result.ok) {
+            text = `✅ Note created: **${result.title}** (ID: ${result.note_id})`;
+        } else if (toolName === 'search_notes' && result && result.notes) {
+            if (result.notes.length === 0) {
+                text = '🔍 No matching notes found.';
+            } else {
+                text = '🔍 **Search results:**\n' + result.notes.map((n) =>
+                    `- **${n.title}**${n.body ? '\n  ' + n.body.substring(0, 200) + '…' : ''}`
+                ).join('\n');
+            }
+        } else {
+            text = JSON.stringify(result, null, 2);
+        }
+        appendMessage('assistant', text);
+    }
+
+    actionCreateNote.addEventListener('click', async function () {
+        const title = prompt('Note title:');
+        if (!title) return;
+        const result = await executeTool('create_note', { title, body: '' });
+        if (result) renderToolResult('create_note', result);
+    });
+
+    actionGetSelected.addEventListener('click', async function () {
+        const result = await executeTool('get_selected_note', {});
+        if (result) renderToolResult('get_selected_note', result);
+    });
+
+    actionListNotebooks.addEventListener('click', async function () {
+        const result = await executeTool('list_notebooks', {});
+        if (result) renderToolResult('list_notebooks', result);
+    });
+
+    // ── Save Chat to Note ──────────────────────────────────────────────────────
+    function getChatText() {
+        const msgs = chatMessages.querySelectorAll('.chat-msg .msg-bubble');
+        const lines = [];
+        msgs.forEach(function (bubble) {
+            const parent = bubble.parentElement;
+            const role = parent.classList.contains('msg-user') ? 'You' : 'AI';
+            const span = bubble.querySelector('span');
+            const text = span ? span.textContent : '';
+            if (text.trim()) {
+                lines.push('**' + role + ':** ' + text.trim());
+            }
+        });
+        return lines.join('\n\n');
+    }
+
+    function generateChatTitle() {
+        const msgs = chatMessages.querySelectorAll('.chat-msg.msg-user .msg-bubble span');
+        for (var i = 0; i < msgs.length; i++) {
+            var text = msgs[i].textContent.trim();
+            if (text.length > 0) {
+                var truncated = text.length > 60 ? text.substring(0, 57) + '…' : text;
+                return 'Chat: ' + truncated;
+            }
+        }
+        return 'Chat export - ' + new Date().toLocaleDateString();
+    }
+
+    function openSaveDialog() {
+        saveChatTitle.value = generateChatTitle();
+        saveChatNotebook.innerHTML = '<option value="" disabled selected>Loading notebooks…</option>';
+        saveChatOverlay.style.display = 'flex';
+
+        executeTool('list_notebooks', {}).then(function (result) {
+            saveChatNotebook.innerHTML = '';
+            if (result && result.notebooks && result.notebooks.length > 0) {
+                saveChatNotebook.innerHTML = '<option value="">(none — save to default notebook)</option>';
+                result.notebooks.forEach(function (nb) {
+                    var opt = document.createElement('option');
+                    opt.value = nb.id;
+                    opt.textContent = nb.title;
+                    saveChatNotebook.appendChild(opt);
+                });
+                saveChatNotebook.selectedIndex = 0;
+            } else {
+                saveChatNotebook.innerHTML = '<option value="">(no notebooks — save to default)</option>';
+                saveChatNotebook.selectedIndex = 0;
+            }
+        });
+    }
+
+    function closeSaveDialog() {
+        saveChatOverlay.style.display = 'none';
+    }
+
+    actionSaveChat.addEventListener('click', openSaveDialog);
+
+    saveChatCancel.addEventListener('click', closeSaveDialog);
+
+    saveChatOverlay.addEventListener('click', function (e) {
+        if (e.target === saveChatOverlay) closeSaveDialog();
+    });
+
+    saveChatConfirm.addEventListener('click', async function () {
+        var title = saveChatTitle.value.trim();
+        if (!title) {
+            appendErrorBubble('❌ Please enter a title for the note.');
+            return;
+        }
+        var notebookId = saveChatNotebook.value || '';
+        var body = getChatText();
+        if (!body.trim()) {
+            appendErrorBubble('❌ No messages to save.');
+            closeSaveDialog();
+            return;
+        }
+        closeSaveDialog();
+        var result = await executeTool('create_note', {
+            title: title,
+            body: body,
+            notebook_id: notebookId,
+        });
+        if (result) renderToolResult('create_note', result);
+    });
 
     // ── Note list & picker ───────────────────────────────────────────────────
     async function loadNotesList() {
@@ -459,11 +673,15 @@
                 type: 'save-settings',
                 provider: currentProvider,
                 apiKey: key,
+                oaiCompatProvider: currentOACompatProvider,
+                oaiBaseUrl: currentOABaseUrl,
+                oaiModel: currentOAModel,
             });
 
             if (response && response.ok) {
                 if (key) {
                     if (currentProvider === 'gemini') hasGeminiApiKey = true;
+                    else if (currentProvider === 'openai_compat') hasOACompatApiKey = true;
                     else hasCohereApiKey = true;
                 }
                 refreshSelectedProviderState();
@@ -481,7 +699,27 @@
     });
 
     providerSelect.addEventListener('change', function () {
-        currentProvider = providerSelect.value === 'gemini' ? 'gemini' : 'cohere';
+        currentProvider = providerSelect.value;
+        updateProviderUi();
+    });
+
+    oaiCompatProviderSelect.addEventListener('change', function () {
+        currentOACompatProvider = oaiCompatProviderSelect.value;
+        const isCustom = currentOACompatProvider === 'custom';
+        oaiBaseUrlGroup.style.display = isCustom ? 'block' : 'none';
+        oaiModelGroup.style.display = isCustom ? 'block' : 'none';
+        const presetMap = {
+            deepseek: { baseUrl: 'https://api.deepseek.com', model: 'deepseek-chat' },
+            kimi:     { baseUrl: 'https://api.moonshot.cn',   model: 'moonshot-v1-128k' },
+            grok:     { baseUrl: 'https://api.x.ai',           model: 'grok-2' },
+            openrouter: { baseUrl: 'https://openrouter.ai/api/v1', model: 'deepseek/deepseek-chat-v3' },
+            custom:   { baseUrl: currentOABaseUrl, model: currentOAModel },
+        };
+        const preset = presetMap[currentOACompatProvider] || presetMap.custom;
+        currentOABaseUrl = preset.baseUrl;
+        currentOAModel = preset.model;
+        oaiBaseUrlInput.value = currentOABaseUrl;
+        oaiModelInput.value = currentOAModel;
         updateProviderUi();
     });
 
@@ -490,9 +728,14 @@
         try {
             const response = await webviewApi.postMessage({ type: 'load-settings' });
             if (response) {
-                currentProvider = response.provider === 'gemini' ? 'gemini' : 'cohere';
+                currentProvider = response.provider === 'gemini' ? 'gemini' :
+                                  response.provider === 'openai_compat' ? 'openai_compat' : 'cohere';
                 hasCohereApiKey = !!response.hasCohereApiKey;
                 hasGeminiApiKey = !!response.hasGeminiApiKey;
+                hasOACompatApiKey = !!response.hasOACompatApiKey;
+                currentOACompatProvider = response.oaiCompatProvider || 'deepseek';
+                currentOABaseUrl = response.oaiBaseUrl || 'https://api.deepseek.com';
+                currentOAModel = response.oaiModel || 'deepseek-chat';
                 updateProviderUi();
             } else {
                 apiKeySet = false;

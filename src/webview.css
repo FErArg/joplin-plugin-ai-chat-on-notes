@@ -438,9 +438,11 @@ hr {
     width: 32px;
     height: 32px;
     flex-shrink: 0;
-    border: 1px solid var(--joplin-divider-color, #ccc);
+    border: 1px solid var(--chat-accent, #1d72b8);
     border-radius: 8px;
-    background: var(--joplin-background-color2, #f5f5f5);
+    background: #e8f0fa;
+    background: color-mix(in srgb, var(--chat-accent, #1d72b8) 10%, transparent);
+    color: var(--chat-accent, #1d72b8);
     cursor: pointer;
     font-size: 15px;
     display: flex;
@@ -451,8 +453,9 @@ hr {
 }
 
 .attach-btn:hover {
-    background: var(--joplin-background-color-hover, rgba(0, 0, 0, 0.08));
-    border-color: var(--joplin-color-highlight, #1d72b8);
+    background: #d4e5f7;
+    background: color-mix(in srgb, var(--chat-accent, #1d72b8) 22%, transparent);
+    border-color: var(--chat-accent, #1d72b8);
 }
 
 .attach-btn:disabled {
@@ -620,4 +623,122 @@ hr {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 160px;
+}
+
+/* ── Action bar ─────────────────────────────────────────────────────────────── */
+.action-bar {
+    display: flex;
+    gap: 5px;
+    padding: 0 8px 6px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    padding: 3px 8px;
+    font-size: 11px;
+    border: 1px solid var(--chat-accent, #1d72b8);
+    border-radius: 12px;
+    background: #e8f0fa;
+    background: color-mix(in srgb, var(--chat-accent, #1d72b8) 10%, transparent);
+    color: var(--chat-accent, #1d72b8);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+}
+
+.action-btn:hover {
+    background: #d4e5f7;
+    background: color-mix(in srgb, var(--chat-accent, #1d72b8) 22%, transparent);
+    border-color: var(--chat-accent, #1d72b8);
+    color: var(--chat-accent, #1d72b8);
+}
+
+.action-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ── Save Chat dialog ───────────────────────────────────────────────────────── */
+.dialog-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.dialog-box {
+    background: var(--joplin-background-color, #fff);
+    border: 1px solid var(--joplin-divider-color, #ccc);
+    border-radius: 12px;
+    padding: 20px;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+}
+
+.dialog-box h3 {
+    color: var(--joplin-color, #333);
+}
+
+/* ── Panel hidden overlay ─────────────────────────────────────────────── */
+.panel-hidden-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--joplin-background-color, #fff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    cursor: pointer;
+}
+
+.panel-hidden-content {
+    text-align: center;
+    user-select: none;
+}
+
+.panel-hidden-icon {
+    font-size: 40px;
+    margin-bottom: 8px;
+}
+
+.panel-hidden-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--joplin-color, #333);
+    margin-bottom: 4px;
+}
+
+.panel-hidden-hint {
+    font-size: 12px;
+    color: var(--joplin-color2, #888);
+}
+
+/* ── Close button in tab bar ─────────────────────────────────────── */
+.tab-bar {
+    display: flex;
+    align-items: center;
+}
+
+.tab-close-btn {
+    margin-left: auto;
+    border: none;
+    background: transparent;
+    color: var(--joplin-color2, #888);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0 10px;
+    line-height: 32px;
+    flex-shrink: 0;
+}
+
+.tab-close-btn:hover {
+    color: var(--joplin-color, #333);
+}
+
+.tab-bar.panel-hidden {
+    display: none;
 }
