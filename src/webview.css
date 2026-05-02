@@ -33,63 +33,23 @@ body {
     color: var(--joplin-color, #333);
 }
 
-/* ── Tab bar ───────────────────────────────────────────────────────────────── */
-.tab-bar {
+/* ── ot-tabs wrapper (oat provides the WebComponent; we style structural layout) ── */
+ot-tabs.tab-bar {
     display: flex;
     border-bottom: 1px solid var(--joplin-divider-color, #ddd);
     background: var(--joplin-background-color2, #f5f5f5);
     flex-shrink: 0;
 }
 
-.tab-btn {
-    flex: 1;
-    padding: 8px 12px;
-    border: none;
-    background: transparent;
-    color: var(--joplin-color, white);
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    border-bottom: 2px solid transparent;
-    transition: background 0.15s, border-color 0.15s;
-}
-
-.tab-btn:hover {
-    background: var(--joplin-background-color-hover, rgba(0, 0, 0, 0.05));
-}
-
-.tab-btn.active {
-    color: var(--joplin-color-highlight, #333);
-    border-bottom-color: var(--joplin-color-highlight, #1d72b8);
-    background: var(--joplin-background-color, #1d72b8) !important;
+ot-tabs.tab-bar[hidden] {
+    display: none;
 }
 
 .tab-icon {
     font-size: 14px;
 }
 
-/* ── Tab contents ──────────────────────────────────────────────────────────── */
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
-    position: relative;
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-}
-
 /* ── Chat tab ──────────────────────────────────────────────────────────────── */
-/* Messages: fixed to the iframe viewport.
-   top: 37px  = tab bar height
-   bottom: 90px = footer height (input row ~50px + status bar ~16px + padding ~24px)
-   Both values keep messages perfectly sandwiched regardless of parent height. */
 .chat-messages {
     position: fixed;
     top: 37px;
@@ -102,12 +62,10 @@ body {
     flex-direction: column;
     gap: 10px;
     background: var(--joplin-background-color, #fff);
-    /* Firefox scrollbar */
     scrollbar-width: thin;
     scrollbar-color: var(--joplin-divider-color, #bbb) transparent;
 }
 
-/* Webkit scrollbar – always visible */
 .chat-messages::-webkit-scrollbar {
     width: 7px;
 }
@@ -121,7 +79,6 @@ body {
     border-radius: 4px;
 }
 
-/* Welcome message */
 .welcome-msg {
     text-align: center;
     padding: 24px 16px;
@@ -149,7 +106,6 @@ body {
     margin-top: 10px;
 }
 
-/* Chat messages */
 .chat-msg {
     display: flex;
 }
@@ -191,7 +147,6 @@ body {
     border-bottom-left-radius: 3px;
 }
 
-/* Chat footer – fixed to the bottom of the iframe viewport */
 .chat-footer {
     position: fixed;
     bottom: 0;
@@ -202,7 +157,6 @@ body {
     z-index: 100;
 }
 
-/* Inner wrapper provides a positioned ancestor for the picker dropdown */
 .chat-footer-inner {
     position: relative;
     padding: 8px;
@@ -241,29 +195,9 @@ body {
 #send-btn {
     width: 34px;
     height: 34px;
-    border: none;
-    border-radius: 8px;
-    background: var(--joplin-color-highlight, #1d72b8);
-    color: #fff;
-    font-size: 14px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.15s;
     flex-shrink: 0;
 }
 
-#send-btn:hover {
-    opacity: 0.85;
-}
-
-#send-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-/* ── Status bar ────────────────────────────────────────────────────────────── */
 .status-bar {
     font-size: 11px;
     margin-top: 4px;
@@ -289,19 +223,6 @@ body {
     margin-top: 0;
 }
 
-.status-error {
-    color: var(--chat-danger) !important;
-}
-
-.status-ok {
-    color: var(--chat-success) !important;
-}
-
-/* ── Settings tab ──────────────────────────────────────────────────────────── */
-#tab-settings {
-    overflow-y: auto;
-}
-
 .settings-panel {
     padding: 16px;
 }
@@ -323,86 +244,10 @@ body {
     color: var(--joplin-color-highlight, #1d72b8);
 }
 
-.form-group {
-    margin-bottom: 12px;
-}
-
-.form-group label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    margin-bottom: 5px;
-    color: var(--joplin-color, #333);
-}
-
 .input-row {
     display: flex;
     gap: 6px;
     align-items: center;
-}
-
-#provider-select {
-    width: 100%;
-    padding: 7px 10px;
-    border: 1px solid var(--joplin-divider-color, #ccc);
-    border-radius: 6px;
-    font-size: 13px;
-    background: var(--joplin-background-color, #fff);
-    color: var(--joplin-color, #333);
-    outline: none;
-}
-
-#provider-select:focus {
-    border-color: var(--joplin-color-highlight, #1d72b8);
-}
-
-#api-key-input {
-    flex: 1;
-    padding: 7px 10px;
-    border: 1px solid var(--joplin-divider-color, #ccc);
-    border-radius: 6px;
-    font-size: 13px;
-    background: var(--joplin-background-color, #fff);
-    color: var(--joplin-color, #333);
-    outline: none;
-}
-
-#api-key-input:focus {
-    border-color: var(--joplin-color-highlight, #1d72b8);
-}
-
-.icon-btn {
-    background: none;
-    border: 1px solid var(--joplin-divider-color, #ccc);
-    border-radius: 6px;
-    padding: 5px 8px;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-.icon-btn:hover {
-    background: var(--joplin-background-color-hover, rgba(0, 0, 0, 0.05));
-}
-
-.primary-btn {
-    padding: 8px 16px;
-    background: var(--joplin-color-highlight, #1d72b8);
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    font-size: 13px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: opacity 0.15s;
-}
-
-.primary-btn:hover {
-    opacity: 0.85;
-}
-
-.primary-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
 }
 
 hr {
@@ -433,37 +278,11 @@ hr {
     line-height: 1.5;
 }
 
-/* ── Note attachment button ────────────────────────────────────────────────── */
-.attach-btn {
-    width: 32px;
-    height: 32px;
-    flex-shrink: 0;
-    border: 1px solid var(--chat-accent, #1d72b8);
-    border-radius: 8px;
-    background: #e8f0fa;
-    background: color-mix(in srgb, var(--chat-accent, #1d72b8) 10%, transparent);
-    color: var(--chat-accent, #1d72b8);
-    cursor: pointer;
-    font-size: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.15s, border-color 0.15s;
-    padding: 0;
+#tab-settings {
+    overflow-y: auto;
 }
 
-.attach-btn:hover {
-    background: #d4e5f7;
-    background: color-mix(in srgb, var(--chat-accent, #1d72b8) 22%, transparent);
-    border-color: var(--chat-accent, #1d72b8);
-}
-
-.attach-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-/* ── Attached note chips ───────────────────────────────────────────────────── */
+/* ── Attached note chips (oat badge + custom layout) ─────────────────────── */
 .attached-notes {
     display: flex;
     flex-wrap: wrap;
@@ -473,19 +292,6 @@ hr {
 
 .attached-notes:empty {
     display: none;
-}
-
-.note-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 3px 8px 3px 6px;
-    background: var(--joplin-color-highlight2, #ddeeff);
-    border: 1px solid var(--joplin-color-highlight, #1d72b8);
-    border-radius: 12px;
-    font-size: 11px;
-    color: var(--joplin-color-highlight, #1d72b8);
-    max-width: 200px;
 }
 
 .chip-title {
@@ -604,7 +410,6 @@ hr {
     text-align: center;
 }
 
-/* ── Attached notes in message bubble ─────────────────────────────────────── */
 .msg-notes {
     display: flex;
     flex-wrap: wrap;
@@ -625,62 +430,11 @@ hr {
     max-width: 160px;
 }
 
-/* ── Action bar ─────────────────────────────────────────────────────────────── */
 .action-bar {
     display: flex;
     gap: 5px;
     padding: 0 8px 6px;
     flex-wrap: wrap;
-}
-
-.action-btn {
-    padding: 3px 8px;
-    font-size: 11px;
-    border: 1px solid var(--chat-accent, #1d72b8);
-    border-radius: 12px;
-    background: #e8f0fa;
-    background: color-mix(in srgb, var(--chat-accent, #1d72b8) 10%, transparent);
-    color: var(--chat-accent, #1d72b8);
-    cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
-    white-space: nowrap;
-}
-
-.action-btn:hover {
-    background: #d4e5f7;
-    background: color-mix(in srgb, var(--chat-accent, #1d72b8) 22%, transparent);
-    border-color: var(--chat-accent, #1d72b8);
-    color: var(--chat-accent, #1d72b8);
-}
-
-.action-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-/* ── Save Chat dialog ───────────────────────────────────────────────────────── */
-.dialog-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.35);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.dialog-box {
-    background: var(--joplin-background-color, #fff);
-    border: 1px solid var(--joplin-divider-color, #ccc);
-    border-radius: 12px;
-    padding: 20px;
-    max-width: 420px;
-    width: 90%;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
-}
-
-.dialog-box h3 {
-    color: var(--joplin-color, #333);
 }
 
 /* ── Panel hidden overlay ─────────────────────────────────────────────── */
@@ -717,28 +471,12 @@ hr {
     color: var(--joplin-color2, #888);
 }
 
-/* ── Close button in tab bar ─────────────────────────────────────── */
-.tab-bar {
-    display: flex;
-    align-items: center;
-}
-
+/* ── Close button (oat ghost button) ──────────────────────────────── */
 .tab-close-btn {
     margin-left: auto;
-    border: none;
-    background: transparent;
-    color: var(--joplin-color2, #888);
-    font-size: 14px;
-    cursor: pointer;
-    padding: 0 10px;
-    line-height: 32px;
     flex-shrink: 0;
 }
 
-.tab-close-btn:hover {
-    color: var(--joplin-color, #333);
-}
-
-.tab-bar.panel-hidden {
+ot-tabs.tab-bar.panel-hidden {
     display: none;
 }

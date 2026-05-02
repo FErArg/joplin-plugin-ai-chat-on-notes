@@ -669,7 +669,9 @@ function getPanelHtml(): string {
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="oat.min.css"/>
   <link rel="stylesheet" href="webview.css"/>
+  <script src="oat.min.js" defer></script>
 </head>
 <body>
   <!-- Panel hidden overlay -->
@@ -681,89 +683,96 @@ function getPanelHtml(): string {
     </div>
   </div>
 
-  <!-- Tab navigation -->
-  <div class="tab-bar">
-    <button class="tab-btn active" data-tab="chat" id="tab-chat-btn">
-      <span class="tab-icon">💬</span> Chat
-    </button>
-    <button class="tab-btn" data-tab="settings" id="tab-settings-btn">
-      <span class="tab-icon">⚙️</span> Settings
-    </button>
-    <button class="tab-btn tab-close-btn" id="panel-close-btn" title="Hide panel">✕</button>
-  </div>
+  <!-- Tab navigation (oat ot-tabs WebComponent) -->
+  <ot-tabs class="tab-bar">
+    <div role="tablist">
+      <button role="tab" aria-selected="true" data-tab="chat" id="tab-chat-btn">
+        <span class="tab-icon">💬</span> Chat
+      </button>
+      <button role="tab" data-tab="settings" id="tab-settings-btn">
+        <span class="tab-icon">⚙️</span> Settings
+      </button>
+      <button role="tab" class="ghost tab-close-btn" id="panel-close-btn" title="Hide panel">✕</button>
+    </div>
 
-  <!-- ── Chat Tab ── -->
-  <div class="tab-content active" id="tab-chat">
-    <div class="chat-messages" id="chat-messages">
-      <div class="welcome-msg">
-        <div class="welcome-icon">🤖</div>
-        <p>Hello! I can answer questions based on your Joplin notes.</p>
+    <!-- ── Chat Tab ── -->
+    <div role="tabpanel" id="tab-chat">
+      <div class="chat-messages" id="chat-messages">
+        <div class="welcome-msg">
+          <div class="welcome-icon">🤖</div>
+          <p>Hello! I can answer questions based on your Joplin notes.</p>
 	        <p class="welcome-sub">Make sure you've saved an API key for your selected provider in the <strong>Settings</strong> tab first.</p>
+        </div>
+      </div>
+      <div class="chat-footer">
+        <div class="chat-footer-inner">
+          <!-- Note picker dropdown (floats above input) -->
+          <div id="note-picker" class="note-picker" style="display:none">
+            <div class="note-picker-search-wrap">
+              <span class="note-picker-icon">🔍</span>
+              <input type="text" id="note-picker-search" placeholder="Search notes…" autocomplete="off" />
+            </div>
+            <ul id="note-picker-list" class="note-picker-list"></ul>
+            <div id="note-picker-empty" class="note-picker-empty" style="display:none">No matching notes</div>
+          </div>
+          <!-- Attached note chips -->
+          <div id="attached-notes" class="attached-notes"></div>
+          <!-- Quick action buttons -->
+          <div class="action-bar">
+            <button id="action-create-note" class="outline small" title="Create a new note">📝 New Note</button>
+            <button id="action-get-selected" class="outline small" title="Get the currently selected note">📄 Current Note</button>
+            <button id="action-list-notebooks" class="outline small" title="List all notebooks">📁 Notebooks</button>
+            <button id="action-save-chat" class="outline small" title="Save entire chat to a new note">💾 Save Chat</button>
+          </div>
+          <!-- Input row -->
+          <div class="chat-input-row">
+            <button id="attach-btn" data-variant="secondary" class="small" title="Attach a note (or type @ in the message)">📎</button>
+            <textarea
+              id="chat-input"
+              placeholder="Ask something… (@ to mention a note, Enter to send)"
+              rows="2"
+            ></textarea>
+            <button id="send-btn" data-variant="primary" title="Send">&#9654;</button>
+          </div>
+          <div id="chat-status" class="status-bar"></div>
+        </div>
+
+        <!-- ── Save Chat Dialog (native <dialog>) ── -->
+        <dialog id="save-chat-dialog" closedby="any">
+          <form method="dialog">
+            <header>
+              <h3 style="margin:0 0 12px">💾 Save Chat to Note</h3>
+            </header>
+            <div data-field>
+              <label>Title</label>
+              <input id="save-chat-title" type="text"/>
+            </div>
+            <div data-field>
+              <label>Notebook</label>
+              <select id="save-chat-notebook"></select>
+            </div>
+            <footer class="hstack">
+              <button type="reset" id="save-chat-cancel" class="outline">Cancel</button>
+              <button type="submit" id="save-chat-confirm" data-variant="primary">💾 Save Note</button>
+            </footer>
+          </form>
+        </dialog>
       </div>
     </div>
-    <div class="chat-footer">
-      <div class="chat-footer-inner">
-        <!-- Note picker dropdown (floats above input) -->
-        <div id="note-picker" class="note-picker" style="display:none">
-          <div class="note-picker-search-wrap">
-            <span class="note-picker-icon">🔍</span>
-            <input type="text" id="note-picker-search" placeholder="Search notes…" autocomplete="off" />
-          </div>
-          <ul id="note-picker-list" class="note-picker-list"></ul>
-          <div id="note-picker-empty" class="note-picker-empty" style="display:none">No matching notes</div>
-        </div>
-        <!-- Attached note chips -->
-        <div id="attached-notes" class="attached-notes"></div>
-        <!-- Quick action buttons -->
-        <div class="action-bar">
-          <button id="action-create-note" class="action-btn" title="Create a new note">📝 New Note</button>
-          <button id="action-get-selected" class="action-btn" title="Get the currently selected note">📄 Current Note</button>
-          <button id="action-list-notebooks" class="action-btn" title="List all notebooks">📁 Notebooks</button>
-          <button id="action-save-chat" class="action-btn" title="Save entire chat to a new note">💾 Save Chat</button>
-        </div>
-        <!-- Input row -->
-        <div class="chat-input-row">
-          <button id="attach-btn" class="attach-btn" title="Attach a note (or type @ in the message)">📎</button>
-          <textarea
-            id="chat-input"
-            placeholder="Ask something… (@ to mention a note, Enter to send)"
-            rows="2"
-          ></textarea>
-          <button id="send-btn" title="Send">&#9654;</button>
-        </div>
-        <div id="chat-status" class="status-bar"></div>
-      </div>
 
-      <!-- ── Save Chat Dialog ── -->
-      <div id="save-chat-overlay" class="dialog-overlay" style="display:none">
-        <div class="dialog-box">
-          <h3 style="margin:0 0 12px">💾 Save Chat to Note</h3>
-          <label style="display:block;font-size:12px;margin-bottom:4px">Title</label>
-          <input id="save-chat-title" type="text" style="width:100%;padding:6px 8px;font-size:13px;border:1px solid var(--joplin-divider-color,#ccc);border-radius:6px;background:var(--joplin-background-color,#fff);color:var(--joplin-color,#333);margin-bottom:12px" />
-          <label style="display:block;font-size:12px;margin-bottom:4px">Notebook</label>
-          <select id="save-chat-notebook" style="width:100%;padding:6px 8px;font-size:13px;border:1px solid var(--joplin-divider-color,#ccc);border-radius:6px;background:var(--joplin-background-color,#fff);color:var(--joplin-color,#333);margin-bottom:16px"></select>
-          <div style="display:flex;gap:8px;justify-content:flex-end">
-            <button id="save-chat-cancel" class="action-btn">Cancel</button>
-            <button id="save-chat-confirm" class="action-btn" style="background:var(--chat-accent,#1d72b8);color:#fff;border-color:var(--chat-accent,#1d72b8)">💾 Save Note</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Settings Tab ── -->
-  <div class="tab-content" id="tab-settings">
-    <div class="settings-panel">
+    <!-- ── Settings Tab ── -->
+    <div role="tabpanel" id="tab-settings" hidden>
+      <div class="settings-panel">
 	      <h2>AI Provider Settings</h2>
-      <p class="settings-desc">
+        <p class="settings-desc">
 	        Choose your provider, then enter your API key.
 	        Get keys from <a href="https://dashboard.cohere.com/api-keys" target="_blank">Cohere</a>,
 	        <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio (Gemini)</a>,
 	        or the OpenAI-compatible provider of your choice.
 	        Keys are encrypted with AES-256-GCM before storage.
-      </p>
+        </p>
 
-	      <div class="form-group">
+	      <div data-field>
 	        <label for="provider-select">Provider</label>
 	        <select id="provider-select">
 	          <option value="cohere">Cohere</option>
@@ -772,7 +781,7 @@ function getPanelHtml(): string {
 	        </select>
 	      </div>
 
-	      <div class="form-group" id="oai-compat-provider-group" style="display:none">
+	      <div data-field id="oai-compat-provider-group" style="display:none">
 	        <label for="oai-compat-provider-select">OpenAI-Compatible Provider</label>
 	        <select id="oai-compat-provider-select">
 	          <option value="deepseek">DeepSeek</option>
@@ -783,46 +792,47 @@ function getPanelHtml(): string {
 	        </select>
 	      </div>
 
-	      <div class="form-group" id="oai-base-url-group" style="display:none">
+	      <div data-field id="oai-base-url-group" style="display:none">
 	        <label for="oai-base-url-input">Base URL</label>
 	        <input type="text" id="oai-base-url-input" autocomplete="off" placeholder="https://api.example.com" />
 	      </div>
 
-	      <div class="form-group" id="oai-model-group" style="display:none">
+	      <div data-field id="oai-model-group" style="display:none">
 	        <label for="oai-model-input">Model</label>
 	        <input type="text" id="oai-model-input" autocomplete="off" placeholder="model-name" />
 	      </div>
 
-      <div class="form-group">
+        <div data-field>
 	        <label for="api-key-input" id="api-key-input-label">API Key</label>
-        <div class="input-row">
-          <input
-            type="password"
-            id="api-key-input"
-            autocomplete="off"
+          <div class="input-row">
+            <input
+              type="password"
+              id="api-key-input"
+              autocomplete="off"
 	            placeholder="Paste API key…"
-          />
-          <button id="toggle-visibility-btn" class="icon-btn" title="Show/hide key">👁</button>
+            />
+            <button id="toggle-visibility-btn" class="ghost" title="Show/hide key">👁</button>
+          </div>
+        </div>
+
+	      <button id="save-settings-btn" data-variant="primary">Save Provider &amp; Key</button>
+        <div class="api-status-row">
+	        <span class="form-label" id="provider-status-label">Provider Status:</span>
+          <div id="settings-status" class="status-bar"></div>
+        </div>
+
+        <hr/>
+        <div class="settings-info">
+          <h3>About Security</h3>
+          <ul>
+            <li class="security-list">Your key is encrypted before storage.</li>
+            <li class="security-list">A random 96-bit IV is generated for every save.</li>
+            <li class="security-list">The key is never stored in plain text.</li>
+          </ul>
         </div>
       </div>
-
-	      <button id="save-settings-btn" class="primary-btn">Save Provider &amp; Key</button>
-      <div class="api-status-row">
-	        <span class="form-label" id="provider-status-label">Provider Status:</span>
-        <div id="settings-status" class="status-bar"></div>
-      </div>
-
-      <hr/>
-      <div class="settings-info">
-        <h3>About Security</h3>
-        <ul>
-          <li class="security-list">Your key is encrypted before storage.</li>
-          <li class="security-list">A random 96-bit IV is generated for every save.</li>
-          <li class="security-list">The key is never stored in plain text.</li>
-        </ul>
-      </div>
     </div>
-  </div>
+  </ot-tabs>
 
   <script src="webview.js"></script>
 </body>

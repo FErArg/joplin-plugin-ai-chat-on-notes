@@ -37,13 +37,13 @@
     const oaiCompatProviderGroup = document.getElementById('oai-compat-provider-group');
     const oaiBaseUrlGroup = document.getElementById('oai-base-url-group');
     const oaiModelGroup = document.getElementById('oai-model-group');
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
+    const tabBtns = document.querySelectorAll('[role="tablist"] [role="tab"]');
+    const tabContents = document.querySelectorAll('[role="tabpanel"]');
     const actionCreateNote = document.getElementById('action-create-note');
     const actionGetSelected = document.getElementById('action-get-selected');
     const actionListNotebooks = document.getElementById('action-list-notebooks');
     const actionSaveChat = document.getElementById('action-save-chat');
-    const saveChatOverlay = document.getElementById('save-chat-overlay');
+    const saveChatDialog = document.getElementById('save-chat-dialog');
     const saveChatTitle = document.getElementById('save-chat-title');
     const saveChatNotebook = document.getElementById('save-chat-notebook');
     const saveChatCancel = document.getElementById('save-chat-cancel');
@@ -57,7 +57,11 @@
     const chatFooter = document.querySelector('.chat-footer');
     const panelCloseBtn = document.getElementById('panel-close-btn');
     const panelHiddenOverlay = document.getElementById('panel-hidden-overlay');
-    const tabBar = document.querySelector('.tab-bar');
+    const tabBar = document.querySelector('ot-tabs');
+
+// ── Tab switching (handled by oat <ot-tabs> WebComponent) ────────────────
+    // The ot-tabs component manages tab selection automatically.
+    // We only need to handle the "active" tab content display for our own logic.
 
     // ── Panel hide/show ──────────────────────────────────────────────────────
     var resizeObserver = new ResizeObserver(function () {
@@ -76,22 +80,48 @@
         panelHiddenOverlay.style.display = 'none';
         tabContents.forEach(function (c) { c.style.display = ''; });
         tabBar.classList.remove('panel-hidden');
-        var activeTab = document.querySelector('.tab-btn.active');
+        var activeTab = document.querySelector('[role="tab"][aria-selected="true"]');
         if (activeTab) {
             var target = activeTab.getAttribute('data-tab');
-            document.getElementById('tab-' + target).classList.add('active');
+            document.getElementById('tab-' + target).style.display = '';
+        }
+    });
+    resizeObserver.observe(chatFooter);
+
+    // ── Panel hide/show ──────────────────────────────────────────────────────
+    panelCloseBtn.addEventListener('click', function () {
+        tabContents.forEach(function (c) { c.style.display = 'none'; });
+        tabBar.classList.add('panel-hidden');
+        panelHiddenOverlay.style.display = 'flex';
+    });
+
+    panelHiddenOverlay.addEventListener('click', function () {
+        panelHiddenOverlay.style.display = 'none';
+        tabContents.forEach(function (c) { c.style.display = ''; c.removeAttribute('hidden'); });
+        tabBar.classList.remove('panel-hidden');
+        var activeTab = document.querySelector('[role="tab"][aria-selected="true"]');
+        if (activeTab) {
+            var target = activeTab.getAttribute('data-tab');
+            document.getElementById('tab-' + target).style.display = '';
         }
     });
 
-    // ── Tab switching ────────────────────────────────────────────────────────
-    tabBtns.forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            const target = btn.getAttribute('data-tab');
-            tabBtns.forEach(function (b) { b.classList.remove('active'); });
-            tabContents.forEach(function (c) { c.classList.remove('active'); });
-            btn.classList.add('active');
-            document.getElementById('tab-' + target).classList.add('active');
+    // ot-tabs fires a 'ot-tabs-change' custom event when the active tab changes.
+    // We use it to sync our tab content visibility.
+    tabBar.addEventListener('ot-tabs-change', function (e) {
+        var selected = e.detail.selected;
+        var target = tabBtns[selected] ? tabBtns[selected].getAttribute('data-tab') : null;
+        tabContents.forEach(function (c) {
+            c.style.display = '';
+            c.setAttribute('hidden', '');
         });
+        if (target) {
+            var panel = document.getElementById('tab-' + target);
+            if (panel) {
+                panel.style.display = '';
+                panel.removeAttribute('hidden');
+            }
+        }
     });
 
     // ── Show / hide API key ──────────────────────────────────────────────────
@@ -108,9 +138,10 @@
     // ── Helpers ──────────────────────────────────────────────────────────────
     function setStatus(el, msg, isError, persistent) {
         el.textContent = msg;
-        el.className = 'status-bar ' + (isError ? 'status-error' : 'status-ok');
+        el.setAttribute('role', 'alert');
+        el.setAttribute('data-variant', isError ? 'error' : 'success');
         if (msg && !persistent) {
-            setTimeout(function () { el.textContent = ''; el.className = 'status-bar'; }, 4000);
+            setTimeout(function () { el.textContent = ''; el.removeAttribute('role'); el.removeAttribute('data-variant'); }, 4000);
         }
     }
 
@@ -325,7 +356,7 @@
     function openSaveDialog() {
         saveChatTitle.value = generateChatTitle();
         saveChatNotebook.innerHTML = '<option value="" disabled selected>Loading notebooks…</option>';
-        saveChatOverlay.style.display = 'flex';
+        saveChatDialog.showModal();
 
         executeTool('list_notebooks', {}).then(function (result) {
             saveChatNotebook.innerHTML = '';
@@ -346,18 +377,15 @@
     }
 
     function closeSaveDialog() {
-        saveChatOverlay.style.display = 'none';
+        saveChatDialog.close();
     }
 
     actionSaveChat.addEventListener('click', openSaveDialog);
 
-    saveChatCancel.addEventListener('click', closeSaveDialog);
+    saveChatCancel.addEventListener('click', function () { closeSaveDialog(); });
 
-    saveChatOverlay.addEventListener('click', function (e) {
-        if (e.target === saveChatOverlay) closeSaveDialog();
-    });
-
-    saveChatConfirm.addEventListener('click', async function () {
+    saveChatDialog.addEventListener('submit', async function (e) {
+        e.preventDefault();
         var title = saveChatTitle.value.trim();
         if (!title) {
             appendErrorBubble('❌ Please enter a title for the note.');
@@ -403,7 +431,7 @@
         attachedNotesEl.innerHTML = '';
         attachedNotes.forEach(function (note) {
             const chip = document.createElement('span');
-            chip.className = 'note-chip';
+            chip.className = 'badge outline';
             chip.innerHTML =
                 '<span class="chip-icon">📄</span>' +
                 '<span class="chip-title">' + escapeHtml(note.title) + '</span>' +

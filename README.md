@@ -123,6 +123,7 @@ The assistant decides when to call a tool based on your request.
 | Detail | Value |
 |--------|-------|
 | AI Models | Cohere `command-r-plus-08-2024`, Gemini `gemini-1.5-flash`, DeepSeek `deepseek-chat`, Minimax `abab6.5s-chat`, OpenRouter (many models) |
+| UI Library | [oat](https://oat.ink) — ultra-lightweight (~8KB), zero dependencies, semantic HTML/CSS/JS |
 | Tool Calling | Enabled for OpenAI-compatible providers only (DeepSeek, Minimax, Kimi, Grok, OpenRouter, custom) |
 | Encryption | AES-256-GCM, key derived with `scrypt`, random 96-bit IV per save |
 | Note fetching | Paginates through all notes (up to 2 000) for the picker; loads up to 30 notes as fallback context |

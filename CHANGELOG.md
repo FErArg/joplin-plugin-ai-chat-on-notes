@@ -2,29 +2,25 @@
 
 All notable changes to this plugin are documented in this file.
 
-## [1.1.6] - 2025-04-25
+## [1.1.4] - 2026-05-02
 
 ### Added
-- **Hide panel**: New `✕` button in the tab bar collapses the panel into a minimal overlay. Click the overlay to restore.
-- New "Hide panel" feature documented in README.
+- **oat UI integration**: Replaced custom CSS component library with [oat](https://oat.ink) (ultra-lightweight, zero-dependency, semantic HTML/CSS/JS UI library, ~8KB).
+- **Native `<dialog>` element**: Save Chat dialog now uses the browser's native `<dialog>` with `closedby="any"` instead of a custom overlay div.
+- **Semantic form fields**: All settings form inputs wrapped with `data-field` attribute for oat's automatic field styling.
+- **oat WebComponent `<ot-tabs>`**: Tab navigation uses oat's WebComponent for accessibility and keyboard navigation.
+- **oat CSS/JS assets**: `src/oat/oat.min.css` and `src/oat/oat.min.js` included in build.
+- **Hide panel**: `✕` button collapses the panel into a minimal overlay. Click to restore.
+
+### Changed
+- **Buttons**: All buttons now use oat's semantic styling (`data-variant`, `outline`, `small`, `ghost`).
+- **Chips/Badges**: Attached note chips use oat `badge outline` class.
+- **Status alerts**: Status messages use `role="alert"` + `data-variant` instead of CSS modifier classes.
+- **webview.css**: Reduced from 744 lines to ~350 lines; removed all oat-replaced component styles.
+- **README updated** with oat UI information.
 
 ### Fixed
 - **Tool calling**: Fixed `tool_call_id` missing error for OpenAI-compatible providers. Messages with `role: 'tool'` now properly include `tool_call_id` referencing the `tool_calls.id` from the assistant message.
-
-## [1.1.5] - 2025-04-25
-
-### Added
-- **Save Chat to Note**: New button exports the entire conversation to a new note. Select a notebook and edit the auto-generated title.
-- **Quick action bar**: New buttons for "New Note", "Current Note", "Notebooks", "Save Chat".
-
-### Changed
-- Updated README with feature documentation for tool calling and quick actions.
-- Added contributors: FErArg, Deepseek, Minimax.
-
-## [1.1.4] - 2025-04-25
-
-### Fixed
-- **Invisible buttons**: Fixed low-contrast buttons in action bar and attach button. Now use accent color border and subtle background.
 
 ## [1.1.3] - 2025-04-25
 
