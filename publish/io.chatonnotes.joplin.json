@@ -2,7 +2,7 @@
 	"manifest_version": 1,
 	"id": "io.chatonnotes.joplin",
 	"app_min_version": "3.5",
-	"version": "1.0.0",
+	"version": "1.1.4",
 	"name": "AI Note Assistant",
 	"description": "An AI-powered assistant for your Joplin workspace that lets you chat with your notes, summarize content, and generate new ideas.",
 	"author": "Zohaib Irshad",
@@ -13,6 +13,6 @@
 	"screenshots": [],
 	"icons": {},
 	"promo_tile": {},
-	"_publish_hash": "sha256:ccf58ab26b1bf85e8ff565de6a6559111c805df02e3bc98c620a486d90db533e",
-	"_publish_commit": "bug/dark-mode:518636dd03c6426ffe067083798c8208d43fc567"
+	"_publish_hash": "sha256:ad8e83b5beb12a3fadfc651680fc238b9a0fe5bfa3390accb768358e2e0fa8ad",
+	"_publish_commit": "master:b03e8f49dc456a21ec1fa72b4e1fd58234c2311a"
 }
