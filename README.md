@@ -16,6 +16,7 @@ An AI-powered chat panel for Joplin that lets you have a conversation with your 
 - **Export chat to note:** Save the entire conversation to a new note in any notebook, with an auto-generated title.
 - **Secure API key storage:** Your API keys are encrypted with **AES-256-GCM** (random 96-bit IV per save) before being stored, and are never kept in plain text.
 - **Theme aware:** Automatically adapts to your Joplin theme (Light, Dark, Dracula, etc.) using native CSS variables.
+- **Semantic UI components:** Built with [oat](https://oat.ink) — an ultra-lightweight (~8KB), zero-dependency UI library that provides accessible, semantic HTML components (buttons, badges, form fields, tabs, dialogs).
 - **Keyboard friendly:** Press `Enter` to send, `Shift+Enter` for a new line, and navigate the note picker entirely with the keyboard.
 - **Hide panel:** Click the **✕** button in the tab bar to collapse the panel into a small overlay. Click the overlay to restore the full panel.
 
